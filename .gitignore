@@ -1,0 +1,13 @@
+# Backups created by install.sh (local machine state — never commit these)
+.backups/
+
+# OS / editor cruft
+.DS_Store
+*.swp
+*~
+
+# zsh completion dump caches (machine-generated)
+.zcompdump*
+
+# Compiled helper from scripts/bashkeys.c (build it locally, don't track the binary)
+scripts/bashkeys
