@@ -25,12 +25,15 @@ CORE_LINKS=(
   "terminal/cool-retro-term/cool-retro-term.conf::.config/cool-retro-term/cool-retro-term.conf"
   "cli-tools/btop/btop.conf::.config/btop/btop.conf"
   "cli-tools/htop/htoprc::.config/htop/htoprc"
+  "cli-tools/thefuck/settings.py::.config/thefuck/settings.py"
 )
 
 # Linux desktop only — skipped automatically on macOS / Windows.
 LINUX_LINKS=(
   "linux-desktop/gtk/.gtkrc-2.0::.gtkrc-2.0"
   "linux-desktop/niri/config.kdl::.config/niri/config.kdl"
+  "linux-desktop/gtk/settings.ini::.config/gtk-3.0/settings.ini"
+  "linux-desktop/user-dirs.dirs::.config/user-dirs.dirs"
 )
 
 # Neovim (NvChad). Opt-in via `--nvim` because upstream is normally its own git

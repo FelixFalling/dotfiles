@@ -1,4 +1,4 @@
-source /home/felix/Downloads/splitmind/gdbinit.py
+source ~/Downloads/splitmind/gdbinit.py
 
 python
 import splitmind

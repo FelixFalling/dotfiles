@@ -51,8 +51,8 @@ dotfiles/
 │   └── cool-retro-term/   cool-retro-term.conf
 ├── git/        .gitconfig  gitignore_global
 ├── debug/      .gdbinit
-├── cli-tools/  btop/  htop/
-├── linux-desktop/   gtk/  niri/        # Linux-only; skipped off-Linux
+├── cli-tools/  btop/  htop/  thefuck/
+├── linux-desktop/   gtk/  niri/  user-dirs.dirs   # Linux-only; skipped off-Linux
 ├── scripts/    bashkeys.c  fix-razer-middle-click.sh
 └── docs/       WINDOWS.md
 ```
@@ -76,8 +76,11 @@ dotfiles/
 | `debug/.gdbinit` | `~/.gdbinit` | GDB + splitmind layout (see gotcha below) | Linux/WSL |
 | `cli-tools/btop/btop.conf` | `~/.config/btop/…` | btop resource monitor | Linux/macOS/WSL |
 | `cli-tools/htop/htoprc` | `~/.config/htop/…` | htop meters/columns | Linux/macOS/WSL |
+| `cli-tools/thefuck/settings.py` | `~/.config/thefuck/…` | thefuck command-corrector settings (currently all defaults) | Linux/macOS/WSL |
 | `linux-desktop/gtk/.gtkrc-2.0` | `~/.gtkrc-2.0` | GTK2 theme (Breeze-Dark) | Linux only |
+| `linux-desktop/gtk/settings.ini` | `~/.config/gtk-3.0/settings.ini` | GTK3 prefer-dark-theme toggle | Linux only |
 | `linux-desktop/niri/config.kdl` | `~/.config/niri/…` | niri Wayland compositor | Linux only |
+| `linux-desktop/user-dirs.dirs` | `~/.config/user-dirs.dirs` | XDG user dirs (incl. `~/Projects`) | Linux only |
 | `scripts/bashkeys.c` | (build manually) | Tiny readline cheat-sheet printer | Linux/macOS/WSL |
 | `scripts/fix-razer-middle-click.sh` | (run manually, sudo) | Patch OpenRazer for Naga Trinity middle-click | Linux only |
 
