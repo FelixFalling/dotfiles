@@ -27,10 +27,13 @@ fi
 ###############################################################################
 export ZSH="$HOME/.oh-my-zsh"
 
-# Prompt theme. Currently using the lightweight "aussiegeek" theme.
-# To switch to Powerlevel10k instead, comment the line below, uncomment the
-# powerlevel10k line, and make sure ~/.p10k.zsh exists (run `p10k configure`).
-ZSH_THEME="aussiegeek"
+# Prompt theme. Empty = no OMZ theme; the prompt is the one ported from
+# ~/.bashrc, defined right after oh-my-zsh.sh is sourced below.
+# To go back to aussiegeek, set ZSH_THEME="aussiegeek" and delete the
+# "Prompt (ported from ~/.bashrc)" block. For Powerlevel10k, do the same with the
+# powerlevel10k line and make sure ~/.p10k.zsh exists (run `p10k configure`).
+ZSH_THEME=""
+# ZSH_THEME="aussiegeek"
 # ZSH_THEME="powerlevel10k/powerlevel10k"
 
 
@@ -57,6 +60,21 @@ plugins=(
 
 source $ZSH/oh-my-zsh.sh
 
+# --- Prompt (ported from ~/.bashrc) ----------------------------------------------------
+#   [host][user][~/current/dir][branch]
+#   : _
+# Same 256-color codes as the bash PS1: 227 yellow, 84 seafoam, 123 light blue, 209 salmon.
+# %m = \h, %n = \u, %~ = \w. Unlike the bash version, zsh's %F{} escapes are zero-width
+# automatically, so long command lines wrap correctly.
+_prompt_git_branch() {
+  local ref
+  ref=$(git symbolic-ref --short -q HEAD 2>/dev/null) ||   # on a branch
+    ref=$(git rev-parse --short HEAD 2>/dev/null) ||       # detached HEAD: short sha
+    return 0                                               # not a git repo
+  print -rn -- "[${ref//\%/%%}]"   # escape % so a branch name can't inject prompt codes
+}
+PROMPT='%F{227}[%m]%F{84}[%n]%F{123}[%~]%F{209}$(_prompt_git_branch)%f'$'\n'': '
+
 # aussiegeek marks a clean git repo with ✔ and a dirty one with ✗, but 0xProto Nerd Font
 # has neither, so the terminal borrowed them from DejaVu Sans Mono in a different shape.
 # These are the Nerd Font's own check and X (nf-fa-check, nf-fa-xmark), drawn in style.
@@ -76,6 +94,10 @@ fi
 
 # Personal bin on PATH.
 export PATH="$HOME/.local/bin:$PATH"
+
+# Turn off XON/XOFF flow control (same as `stty -ixon` in ~/.bashrc), so Ctrl-S no longer
+# freezes the terminal. That frees Ctrl-S for zsh's forward history search.
+[[ -t 0 ]] && stty -ixon
 
 # History quality-of-life (the OMZ `history` plugin sets HISTFILE/SIZE; these
 # refine the behavior).
@@ -205,6 +227,9 @@ alias vim='nvim'
 alias vi='nvim'
 alias view='nvim -R'
 alias vimdiff='nvim -d'
+alias nano='nvim'
+
+alias neofetch='fastfetch'
 
 # Bash/readline keybinding cheat sheet (compile scripts/bashkeys.c -> ~/.local/bin/bashkeys).
 alias bashkeys="$HOME/.local/bin/bashkeys"
