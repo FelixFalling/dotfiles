@@ -57,6 +57,12 @@ plugins=(
 
 source $ZSH/oh-my-zsh.sh
 
+# aussiegeek marks a clean git repo with ✔ and a dirty one with ✗, but 0xProto Nerd Font
+# has neither, so the terminal borrowed them from DejaVu Sans Mono in a different shape.
+# These are the Nerd Font's own check and X (nf-fa-check, nf-fa-xmark), drawn in style.
+ZSH_THEME_GIT_PROMPT_CLEAN=$''
+ZSH_THEME_GIT_PROMPT_DIRTY=$''
+
 
 ###############################################################################
 # 4. USER ENVIRONMENT
@@ -79,6 +85,113 @@ setopt HIST_IGNORE_ALL_DUPS   # drop older duplicate of a repeated command
 setopt HIST_REDUCE_BLANKS     # trim superfluous whitespace before saving
 setopt HIST_VERIFY            # expand !! etc. onto the line instead of running blind
 setopt SHARE_HISTORY          # share history live across open terminals
+setopt HIST_IGNORE_SPACE      # prefix a command with a space to keep it out of history
+
+# --- what never reaches history (and so never reaches zsh-autosuggestions) --------------
+# zshaddhistory runs BEFORE the command does, so none of this can judge exit status - it
+# judges the TEXT of the line. Returning non-zero drops the line.
+#
+# Your own private patterns live in ~/.config/zsh/history-ignore, deliberately OUTSIDE the
+# dotfiles git repo so the patterns themselves are never committed or pushed. One
+# case-insensitive substring per line, # for comments. Reload with: histignore-reload
+_HIST_DENY=()
+_hist_load_deny() {
+  emulate -L zsh
+  local f=$HOME/.config/zsh/history-ignore l
+  _HIST_DENY=()
+  [[ -r $f ]] || return 0
+  while IFS= read -r l; do
+    [[ $l == \#* || -z ${l//[[:space:]]/} ]] && continue
+    _HIST_DENY+=("$l")
+  done < $f
+}
+_hist_load_deny
+alias histignore-reload='_hist_load_deny; _hist_load_words; print "reloaded ${#_HIST_DENY} pattern(s)"'
+
+# Whole-word blocklist (~/.config/zsh/history-words), matched with WORD BOUNDARIES so
+# "$SHELL", "shellcheck", "assets", "class" and "assert" survive while the actual words do
+# not. Also outside the dotfiles repo, so the list itself is never committed.
+_HIST_WORD_RE=''
+_hist_load_words() {
+  emulate -L zsh
+  local f=$HOME/.config/zsh/history-words l
+  local -a w
+  _HIST_WORD_RE=''
+  [[ -r $f ]] || return 0
+  while IFS= read -r l; do
+    [[ $l == \#* || -z ${l//[[:space:]]/} ]] && continue
+    w+=("${l:l}")
+  done < $f
+  (( $#w )) || return 0
+  _HIST_WORD_RE="(^|[^a-z0-9])(${(j:|:)w})(s|es|ed|ing|er|ers|in|y)?([^a-z0-9]|\$)"
+}
+_hist_load_words
+
+# Clutter and one-offs. These are about usefulness, not privacy: bare `ls`/`cd` dominate
+# autosuggestions and are never worth recalling, and a 200-character paste is a one-off.
+# Destructive commands are here for a different reason - keeping them OUT means a stray Tab
+# can never autocomplete you into re-running `rm -rf`. Plain `rm file.txt` is unaffected.
+_HIST_NOISE_RE='^[[:space:]]*((pwd|clear|exit|logout|reset|whoami|history)|(ls|ll|la|lsd|eza)([[:space:]]+-[a-zA-Z]+)*|cd([[:space:]]+(\.\.|-|~|/))?|cat)[[:space:]]*$'
+_HIST_DESTRUCTIVE_RE='(rm[[:space:]]+(-[a-za-z]*[rf][a-za-z]*[[:space:]]+)+|[[:space:]]dd[[:space:]]+if=|^dd[[:space:]]+if=|mkfs|shred[[:space:]]|>[[:space:]]*/dev/(sd|nvme))'
+# Only URLs handed to a BROWSER. `curl https://...` and `git clone https://...` are work,
+# not browsing, and stay.
+_HIST_URL_RE='(xdg-open|firefox|chromium|google-chrome|brave|browser)[[:space:]]+[^[:space:]]*https?://'
+# Email addresses - but ssh/scp/rsync user@host is not an email, and blocking those would
+# cost you the commands you use most.
+_HIST_EMAIL_RE='[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}'
+_HIST_REMOTE_RE='(^|[[:space:]])(ssh|scp|sftp|rsync|mosh|tailscale)([[:space:]]|$)'
+_HIST_MAXLEN=200
+
+# Credentials, matched by SHAPE rather than by a wordlist, so "tokenizer.py" and "token
+# bucket rate limiter" survive while GITHUB_TOKEN=ghp_... does not.
+_HIST_SECRET_RE='(password|passwd|passphrase|secret|api[_-]?key|apikey|credential|authkey|bearer |begin [a-z ]*private key|private[_-]key|[a-z0-9_-]*token[a-z0-9_-]*[[:space:]]*[=:]|--token|gh[pousr]_[a-za-z0-9]{16,}|github_pat_[a-za-z0-9_]{20,}|sk-[a-za-z0-9]{20,}|xox[baprs]-[a-za-z0-9-]{10,}|akia[0-9a-z]{16}|tskey-[a-za-z0-9-]{10,}|glpat-[a-za-z0-9_-]{15,}|aiza[0-9a-za-z_-]{30,})'
+# SSN, card-length digit runs, phone numbers, and base64/hex blobs long enough to be a key.
+_HIST_PII_RE='([0-9]{3}-[0-9]{2}-[0-9]{4}|[0-9]{13,19}|\+?[0-9]{3}[-. ][0-9]{3}[-. ][0-9]{4}|[A-Za-z0-9+/]{40,}={0,2}|[0-9a-f]{40,})'
+
+zshaddhistory() {
+  emulate -L zsh
+  local line=${1%%$'\n'} low w p
+  local -a words
+  low=${line:l}
+
+  # 1. clutter, one-offs, destructive commands, browser URLs, email addresses
+  (( ${#line} > _HIST_MAXLEN )) && return 1
+  [[ $line =~ $_HIST_NOISE_RE ]] && return 1
+  [[ $low  =~ $_HIST_DESTRUCTIVE_RE ]] && return 1
+  [[ $low  =~ $_HIST_URL_RE ]] && return 1
+  [[ ! $low =~ $_HIST_REMOTE_RE && $low =~ $_HIST_EMAIL_RE ]] && return 1
+
+  # 2. credentials and PII
+  [[ $low =~ $_HIST_SECRET_RE ]] && return 1
+  [[ $line =~ $_HIST_PII_RE ]] && return 1
+
+  # 3. your own private patterns
+  for p in $_HIST_DENY; do
+    [[ $low == *${(L)p}* ]] && return 1
+  done
+
+  # 4. whole words you have blocklisted
+  [[ -n $_HIST_WORD_RE && $low =~ $_HIST_WORD_RE ]] && return 1
+
+  # 5. typos: does the command actually exist? Step past wrappers first, so
+  #    "sudo gti push" is judged on "gti" rather than on "sudo", which always exists.
+  words=(${(z)line})
+  while (( $#words )); do
+    w=$words[1]
+    case $w in
+      *=*|sudo|doas|command|builtin|nohup|time|env|setsid|exec|nice|ionice|-*) shift words ;;
+      *) break ;;
+    esac
+  done
+  (( $#words )) || return 0
+  w=$words[1]
+  if [[ $w == */* ]]; then          # a path - let the filesystem decide
+    [[ -x $w || -d $w ]] || return 1
+    return 0
+  fi
+  whence -w -- $w >/dev/null 2>&1 || return 1
+  return 0
+}
 
 # Powerlevel10k prompt config (only takes effect with the p10k theme above).
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
@@ -103,6 +216,51 @@ alias psu-vpn="sudo openconnect vpn.pdx.edu --useragent 'AnyConnect' --no-extern
 ###############################################################################
 # 6. EXTERNAL TOOL INIT
 ###############################################################################
+# Open or reconnect to a named tmux session: t [name] (default: main).
+# Within tmux, switch sessions instead of nesting another tmux client.
+t() {
+  local session_name=${1:-main}
+  if [[ -n $TMUX ]]; then
+    tmux has-session -t "=$session_name" 2>/dev/null ||
+      tmux new-session -d -s "$session_name" || return
+    tmux switch-client -t "=$session_name"
+  else
+    tmux new-session -A -s "$session_name"
+  fi
+}
+
 # `thefuck` corrects the previous command (run: fuck). Guarded so this file
 # still works on machines where thefuck isn't installed.
 command -v thefuck >/dev/null 2>&1 && eval "$(thefuck --alias)"
+export OLLAMA_API_BASE=http://127.0.0.1:11434
+
+###############################################################################
+# `game ./thing.exe [args]` runs a Windows exe with GE-Proton via umu-launcher,
+# no Steam needed. Each game gets its own prefix in ~/.proton/<game folder>;
+# override with GAME_PREFIX=name. Runs from the exe's folder.
+game() {
+  [[ -f "$1" ]] || { echo "usage: game <file.exe> [args]" >&2; return 1; }
+  local exe="$(realpath "$1")"; shift
+  local dir="$(dirname "$exe")"
+  local prefix="$HOME/.proton/${GAME_PREFIX:-$(basename "$dir")}"
+  mkdir -p "$prefix"
+  (cd "$dir" && WINEPREFIX="$prefix" PROTONPATH="${PROTONPATH:-GE-Proton}" umu-run "$exe" "$@")
+}
+
+
+# Added by Antigravity CLI installer
+export PATH="$HOME/.local/bin:$PATH"
+
+# Steam Remote Play: the firewall keeps its ports closed. Open them on the home network for a session.
+remoteplay-on() {
+  sudo ufw allow from 192.168.0.0/16 to any port 27031:27036 proto udp
+  sudo ufw allow from 192.168.0.0/16 to any port 27036:27037 proto tcp
+}
+remoteplay-off() {
+  sudo ufw delete allow from 192.168.0.0/16 to any port 27031:27036 proto udp
+  sudo ufw delete allow from 192.168.0.0/16 to any port 27036:27037 proto tcp
+}
+
+# Added by flyctl installer
+export FLYCTL_INSTALL="$HOME/.fly"
+export PATH="$FLYCTL_INSTALL/bin:$PATH"
