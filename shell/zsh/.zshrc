@@ -85,11 +85,13 @@ ZSH_THEME_GIT_PROMPT_DIRTY=$''
 ###############################################################################
 # 4. USER ENVIRONMENT
 ###############################################################################
-# Prefer nvim locally, but fall back to vim over SSH (remote box may lack nvim).
-if [[ -n $SSH_CONNECTION ]]; then
-  export EDITOR='vim'
-else
+# Prefer nvim, fall back to vim if not installed.
+if command -v nvim >/dev/null 2>&1; then
   export EDITOR='nvim'
+  export VISUAL='nvim'
+else
+  export EDITOR='vim'
+  export VISUAL='vim'
 fi
 
 # Personal bin on PATH.
@@ -289,3 +291,9 @@ remoteplay-off() {
 # Added by flyctl installer
 export FLYCTL_INSTALL="$HOME/.fly"
 export PATH="$FLYCTL_INSTALL/bin:$PATH"
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/home/felix/.local/share/google-cloud-sdk/path.zsh.inc' ]; then . '/home/felix/.local/share/google-cloud-sdk/path.zsh.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/home/felix/.local/share/google-cloud-sdk/completion.zsh.inc' ]; then . '/home/felix/.local/share/google-cloud-sdk/completion.zsh.inc'; fi
