@@ -38,7 +38,7 @@ STAMP="$(date +%Y%m%d-%H%M%S)"
 BACKUP_DIR="$DOTFILES/.backups/$STAMP"
 
 say()  { printf '%s\n' "$*"; }
-run()  { if [[ $DRY_RUN -eq 1 ]]; then say "  [dry-run] $*"; else eval "$*"; fi; }
+run()  { if [[ $DRY_RUN -eq 1 ]]; then say "  [dry-run] $*"; else "$@"; fi; }
 
 # link <repo-relative-src> <home-relative-dest>
 link() {
@@ -58,13 +58,13 @@ link() {
   # Back up whatever is currently there (real file, dir, or stale symlink).
   if [[ -e "$dest" || -L "$dest" ]]; then
     local backup="$BACKUP_DIR/$2"
-    run "mkdir -p '$(dirname "$backup")'"
-    run "mv '$dest' '$backup'"
+    run mkdir -p "$(dirname "$backup")"
+    run mv "$dest" "$backup"
     say "  ~ backed up existing ~/$2"
   fi
 
-  run "mkdir -p '$(dirname "$dest")'"
-  run "ln -s '$src' '$dest'"
+  run mkdir -p "$(dirname "$dest")"
+  run ln -s "$src" "$dest"
   say "  + linked ~/$2  ->  ${src/#$HOME/~}"
 }
 

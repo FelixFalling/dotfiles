@@ -6,7 +6,6 @@
 # Default editor for all shells (interactive .zshrc may override for SSH).
 export VISUAL=nvim
 export EDITOR=$VISUAL
-export GIT_EDITOR=$VISUAL
 
 # Rust/Cargo toolchain on PATH — guarded so this file is harmless on machines
 # without a Rust install (important for porting these dotfiles elsewhere).

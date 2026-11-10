@@ -1,1 +1,25 @@
+# Claude / AI local settings
 **/.claude/settings.local.json
+
+# Environment variables & secrets (CWE-312 / CWE-522)
+.env
+.env.*
+!.env.example
+!.env.template
+
+# Private keys, certificates, and credentials
+*.pem
+*.key
+*.pfx
+*.p12
+*.pkcs12
+*credentials*.json
+!credentials*.json.example
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+
+# OS & editor artifacts
+.DS_Store
+Thumbs.db

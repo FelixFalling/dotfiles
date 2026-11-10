@@ -24,7 +24,7 @@ for arg in "$@"; do
 done
 
 say() { printf '%s\n' "$*"; }
-run() { if [[ $DRY_RUN -eq 1 ]]; then say "  [dry-run] $*"; else eval "$*"; fi; }
+run() { if [[ $DRY_RUN -eq 1 ]]; then say "  [dry-run] $*"; else "$@"; fi; }
 
 ALL_LINKS=( "${CORE_LINKS[@]}" "${LINUX_LINKS[@]}" "${NVIM_LINKS[@]}" )
 
@@ -33,7 +33,7 @@ for entry in "${ALL_LINKS[@]}"; do
   src="$DOTFILES/${entry%%::*}"
   dest="$HOME/${entry##*::}"
   if [[ -L "$dest" && "$(readlink -- "$dest")" == "$src" ]]; then
-    run "rm '$dest'"
+    run rm "$dest"
     say "  - removed ~/${entry##*::}"
   fi
 done
@@ -47,8 +47,8 @@ if [[ $RESTORE -eq 1 ]]; then
     while IFS= read -r -d '' item; do
       rel="${item#"$latest"}"
       dest="$HOME/$rel"
-      run "mkdir -p '$(dirname "$dest")'"
-      run "mv '$item' '$dest'"
+      run mkdir -p "$(dirname "$dest")"
+      run mv "$item" "$dest"
       say "  + restored ~/$rel"
     done < <(find "$latest" -mindepth 1 \( -type f -o -type l \) -print0)
   else

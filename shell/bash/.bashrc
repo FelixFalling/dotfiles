@@ -23,14 +23,13 @@ if [ -e ~/.bash_aliases ]; then
     source ~/.bash_aliases
 fi
 
-#Newer python versions
-# export PATH=/usr/local/bin:$PATH
-#export PATH=$HOME/usr/bin:$PATH
-
-export PATH=$HOME/usr/bin:/usr/local/bin:$PATH
-export PYTHON_ROOT=$HOME/usr
-export PYTHON_VERSION=3.13
-export LD_LIBRARY_PATH=$HOME/usr/lib:$LD_LIBRARY_PATH
+# Python & user paths (guarded so empty paths never search current directory '.')
+if [ -d "$HOME/usr/bin" ]; then
+    export PATH="$HOME/usr/bin:$PATH"
+fi
+if [ -d "$HOME/usr/lib" ]; then
+    export LD_LIBRARY_PATH="$HOME/usr/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+fi
 
 alias neofetch='fastfetch'
 alias nano='nvim'
