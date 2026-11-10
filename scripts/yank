@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# Copy stdin or a file to system clipboard.
+# Works across Wayland (wl-copy), X11 (xclip/xsel), and remote terminals over
+# Mosh/SSH via OSC 52 (iTerm2, Alacritty, Ghostty, WezTerm, etc.).
+set -eo pipefail
+
+# Read content preserving all trailing newlines and whitespace verbatim
+if [ -n "$1" ]; then
+    content=$(cat "$1"; printf x)
+else
+    content=$(cat; printf x)
+fi
+content="${content%x}"
+
+# 1. Update local Wayland/X11 clipboard if a graphical display server is running
+if [ -n "$WAYLAND_DISPLAY" ] && command -v wl-copy >/dev/null 2>&1; then
+    printf "%s" "$content" | wl-copy &
+elif [ -n "$DISPLAY" ] && command -v xclip >/dev/null 2>&1; then
+    printf "%s" "$content" | xclip -selection clipboard &
+elif [ -n "$DISPLAY" ] && command -v xsel >/dev/null 2>&1; then
+    printf "%s" "$content" | xsel -ib &
+fi
+
+# 2. Emit OSC 52 to update client clipboard (Mosh, SSH, iTerm2, Alacritty, Ghostty)
+# Limit OSC 52 payload to 1MB to prevent terminal lockup or transport saturation
+if [ "${#content}" -le 1048576 ]; then
+    encoded=$(printf "%s" "$content" | base64 | tr -d '\r\n')
+    if [ -n "$TMUX" ]; then
+        # Wrap in tmux DCS passthrough so it reaches the outer terminal over Mosh
+        printf "\033Ptmux;\033\033]52;c;%s\007\033\\" "$encoded"
+    else
+        printf "\033]52;c;%s\007" "$encoded"
+    fi
+fi

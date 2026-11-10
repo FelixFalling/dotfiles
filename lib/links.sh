@@ -26,6 +26,7 @@ CORE_LINKS=(
   "cli-tools/btop/btop.conf::.config/btop/btop.conf"
   "cli-tools/htop/htoprc::.config/htop/htoprc"
   "cli-tools/thefuck/settings.py::.config/thefuck/settings.py"
+  "scripts/yank::.local/bin/yank"
 )
 
 # Linux desktop only — skipped automatically on macOS / Windows.
