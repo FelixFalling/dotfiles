@@ -85,13 +85,11 @@ ZSH_THEME_GIT_PROMPT_DIRTY=$''
 ###############################################################################
 # 4. USER ENVIRONMENT
 ###############################################################################
-# Prefer nvim, fall back to vim if not installed.
-if command -v nvim >/dev/null 2>&1; then
-  export EDITOR='nvim'
-  export VISUAL='nvim'
-else
+# Prefer nvim locally, but fall back to vim over SSH (remote box may lack nvim).
+if [[ -n $SSH_CONNECTION ]]; then
   export EDITOR='vim'
-  export VISUAL='vim'
+else
+  export EDITOR='nvim'
 fi
 
 # Personal bin on PATH.
@@ -224,9 +222,7 @@ zshaddhistory() {
 ###############################################################################
 # 5. ALIASES
 ###############################################################################
-# Use Neovim everywhere.
-alias vim='nvim'
-alias vi='nvim'
+# nvim runs Neovim; vim/vi runs classic Vim with ~/.vimrc.
 alias view='nvim -R'
 alias vimdiff='nvim -d'
 alias nano='nvim'

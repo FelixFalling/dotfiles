@@ -2,9 +2,6 @@
 # ~/.bashrc
 #
 
-export EDITOR='nvim'
-export VISUAL='nvim'
-
 # If not running interactively, don't do anything
 [[ $- != *i* ]] && return
 
@@ -37,7 +34,6 @@ export LD_LIBRARY_PATH=$HOME/usr/lib:$LD_LIBRARY_PATH
 
 alias neofetch='fastfetch'
 alias nano='nvim'
-alias vim='nvim'
 
 alias psu-vpn="sudo openconnect vpn.pdx.edu --useragent 'AnyConnect' --no-external-auth"
 . "$HOME/.cargo/env"
