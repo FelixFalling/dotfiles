@@ -27,6 +27,7 @@ CORE_LINKS=(
   "cli-tools/htop/htoprc::.config/htop/htoprc"
   "cli-tools/thefuck/settings.py::.config/thefuck/settings.py"
   "scripts/yank::.local/bin/yank"
+  "scripts/nvim-inverse-search::.local/bin/nvim-inverse-search"
 )
 
 # Linux desktop only — skipped automatically on macOS / Windows.

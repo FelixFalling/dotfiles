@@ -1,0 +1,15 @@
+#!/bin/sh
+# Called by zathura (via vimtex) on reverse search. Sends the VimtexInverseSearch
+# command to the Neovim instance that launched the viewer, instead of starting a new one.
+cmd=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -c) shift; cmd="$1" ;;
+  esac
+  shift
+done
+[ -n "$cmd" ] || exit 1
+if [ -z "$NVIM" ]; then
+  exec nvim --headless -c "$cmd"
+fi
+exec nvim --server "$NVIM" --remote-send "<C-\\><C-n>:${cmd}<CR>"

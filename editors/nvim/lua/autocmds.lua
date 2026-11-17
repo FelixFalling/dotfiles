@@ -17,11 +17,16 @@ autoread_timer:start(1000, 1000, vim.schedule_wrap(function()
   end
 end))
 
+-- Spell checking is on everywhere (options.lua); a terminal is the one place it only adds noise.
+vim.api.nvim_create_autocmd("TermOpen", {
+  callback = function()
+    vim.opt_local.spell = false
+  end,
+})
+
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "markdown",
   callback = function()
-    vim.opt_local.spell = true
-    vim.opt_local.spelllang = "en_us"
     vim.opt_local.conceallevel = 0
   end,
 })
@@ -29,10 +34,6 @@ vim.api.nvim_create_autocmd("FileType", {
 vim.api.nvim_create_autocmd("FileType", {
   pattern = { "tex", "plaintex" },
   callback = function()
-    vim.opt_local.spell = true
-    vim.opt_local.spelllang = "en_us"
-    vim.opt_local.wrap = true
-    vim.opt_local.linebreak = true   -- wrap at word boundaries
     vim.opt_local.textwidth = 0      -- no hard wrapping
     vim.opt_local.conceallevel = 2
     vim.g.tex_conceal = "abdmgs"     -- hide \textbf{} wrappers etc.; keep the text

@@ -83,6 +83,7 @@ dotfiles/
 | `linux-desktop/user-dirs.dirs` | `~/.config/user-dirs.dirs` | XDG user dirs (incl. `~/Projects`) | Linux only |
 | `scripts/bashkeys.c` | (build manually) | Tiny readline cheat-sheet printer | Linux/macOS/WSL |
 | `scripts/fix-razer-middle-click.sh` | (run manually, sudo) | Patch OpenRazer for Naga Trinity middle-click | Linux only |
+| `scripts/nvim-inverse-search` | `~/.local/bin/nvim-inverse-search` | Reverse search for vimtex: a click in the PDF moves the cursor of the running Neovim | Linux/macOS/WSL |
 
 ---
 
